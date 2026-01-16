@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSE-Trainer Master</title>
+    <title>PSE-Trainer Master Pro</title>
     <style>
         :root {
-            --primary: #2563eb; --primary-dark: #1e40af; --success: #22c55e; --error: #ef4444;
+            --primary: #2563eb; --primary-dark: #1e40af; --success: #16a34a; --error: #dc2626;
             --bg-site: #f8fafc; --bg-card: #ffffff; --border: #e2e8f0; --text-main: #1e293b; --text-muted: #64748b;
             --alkali: #fee2e2; --erdalkali: #ffedd5; --halogene: #dcfce7; --edelgase: #f3e8ff;
             --nichtmetalle: #e0f2fe; --metalle: #f1f5f9; --halbmetalle: #fef9c3;
@@ -14,21 +14,38 @@
 
         * { box-sizing: border-box; transition: all 0.1s ease; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-site); color: var(--text-main); padding: 20px; display: flex; justify-content: center; }
-        .pse-container { max-width: 1000px; width: 100%; background: var(--bg-card); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); padding: 24px; }
+        .pse-container { max-width: 1000px; width: 100%; background: var(--bg-card); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); padding: 24px; position: relative; }
+        
         header { border-bottom: 2px solid var(--border); margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .stats-bar { display: flex; gap: 15px; background: var(--bg-site); padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; }
+        
         .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 8px; }
         .control-group { display: flex; flex-direction: column; gap: 5px; }
         label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
-        .task-area { background: var(--primary); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center; }
-        #task-text { font-size: 1.1rem; font-weight: 500; margin: 0; }
-        #feedback { font-weight: 700; margin-top: 8px; min-height: 1.2rem; }
+
+        .task-area { 
+            background: var(--primary); color: white; padding: 25px; border-radius: 8px; 
+            margin-bottom: 20px; text-align: left; min-height: 140px; 
+            display: flex; flex-direction: column; justify-content: center; position: relative;
+        }
+        #task-text { font-size: 1.2rem; font-weight: 500; margin: 0; max-width: 70%; }
+        #feedback { font-weight: 700; margin-top: 10px; min-height: 1.2rem; font-size: 1.1rem; }
+
+        /* Button unten rechts positionieren */
+        #next-btn { 
+            position: absolute; right: 20px; bottom: 20px; 
+            padding: 12px 24px; background: #fff; color: var(--primary); 
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 800;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #next-btn:hover { background: #f1f5f9; transform: translateY(-2px); }
+
         .ptable { display: grid; grid-template-columns: 35px repeat(8, 1fr); gap: 5px; min-width: 800px; margin-top: 10px; }
         .cell { aspect-ratio: 1 / 1; border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: white; font-size: 0.75rem; }
         .cell.header { background: none; border: none; font-weight: bold; cursor: default; color: var(--text-muted); }
         .cell.empty { background: none; border: none; cursor: default; }
         .z-num { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; color: var(--text-muted); }
-        .symbol { font-size: 1.1rem; font-weight: bold; }
+        .symbol { font-size: 1.2rem; font-weight: bold; }
         .name { font-size: 0.55rem; text-align: center; margin-top: 2px; }
 
         /* Kategorien */
@@ -36,16 +53,17 @@
         .halogen { background: var(--halogene); } .edelgas { background: var(--edelgase); }
         .nichtmetall { background: var(--nichtmetalle); } .metall { background: var(--metalle); } .halbmetall { background: var(--halbmetalle); }
 
-        /* Sichtbarkeit */
+        /* Logik-Klassen */
         .content-hidden .symbol, .content-hidden .name, .content-hidden .z-num { visibility: hidden !important; }
-        .cell.correct { background: var(--success) !important; color: white; }
-        .cell.wrong { background: var(--error) !important; color: white; }
-        .cell.target-frame { border: 4px solid #facc15 !important; box-shadow: 0 0 10px rgba(250,204,21,0.5); z-index: 5; }
-        .cell.highlight { border: 3px solid var(--primary); }
+        .cell.correct { background: var(--success) !important; color: white; border-color: #065f46; }
+        .cell.wrong { background: var(--error) !important; color: white; border-color: #991b1b; }
+        .cell.target-frame { border: 4px solid #facc15 !important; z-index: 5; box-shadow: 0 0 10px rgba(250,204,21,0.5); }
+        .cell.highlight { border: 3px solid #fff; box-shadow: 0 0 0 2px var(--primary); }
 
-        .input-area { display: none; gap: 10px; margin-top: 20px; justify-content: center; }
-        input { padding: 10px; border: 2px solid var(--primary); border-radius: 8px; outline: none; width: 200px; }
-        button { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .input-area { display: none; gap: 10px; margin-top: 20px; justify-content: center; background: #f1f5f9; padding: 15px; border-radius: 8px; }
+        input { padding: 12px; border: 2px solid var(--primary); border-radius: 8px; outline: none; width: 300px; font-size: 1.1rem; }
+        #submit-btn { padding: 10px 25px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
         .deck-info { font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; text-align: center; }
     </style>
 </head>
@@ -53,7 +71,7 @@
 
 <div class="pse-container">
     <header>
-        <h1>PSE-Trainer</h1>
+        <h1>PSE-Trainer Master Pro</h1>
         <div class="stats-bar">
             <div>Richtig: <span id="score">0</span></div>
             <div>Stapel: <span id="remaining">42</span></div>
@@ -66,7 +84,7 @@
             <label>Modus</label>
             <select id="mode-select">
                 <option value="click">1️⃣ Position finden (Klicken)</option>
-                <option value="input">2️⃣ Symbol/Name eingeben</option>
+                <option value="input">2️⃣ Symbol & Name eingeben</option>
                 <option value="identify">3️⃣ Position gegeben (Symbol gesucht)</option>
                 <option value="study">📖 Lernmodus</option>
             </select>
@@ -77,15 +95,12 @@
                 <input type="checkbox" id="show-others" checked> <label for="show-others">Andere Elemente zeigen</label>
             </div>
         </div>
-        <div class="control-group">
-            <label>&nbsp;</label>
-            <button id="next-btn">Nächste Aufgabe</button>
-        </div>
     </div>
 
     <div class="task-area">
         <p id="task-text">Wähle einen Modus und starte die Aufgabe.</p>
         <div id="feedback"></div>
+        <button id="next-btn">Nächste Aufgabe</button>
     </div>
 
     <div style="overflow-x:auto;">
@@ -93,10 +108,10 @@
     </div>
 
     <div class="input-area" id="input-container">
-        <input type="text" id="answer-input" placeholder="Antwort..." autocomplete="off">
+        <input type="text" id="answer-input" placeholder="Symbol [Leer] Name (z.B. Na Natrium)" autocomplete="off">
         <button id="submit-btn">Prüfen</button>
     </div>
-    <p class="deck-info">Die Elemente werden gemischt. Keine Wiederholung, bis der Stapel leer ist.</p>
+    <p class="deck-info">Misch-Modus: Jedes Element wird einmal abgefragt, bevor Wiederholungen kommen.</p>
 </div>
 
 <script>
@@ -125,7 +140,7 @@
     ];
 
     const groups = [1, 2, 13, 14, 15, 16, 17, 18];
-    let deck = [], currentTask = null, score = 0, total = 0;
+    let deck = [], currentTask = null, score = 0, total = 0, isAnswered = false;
 
     function initTable() {
         const ptable = document.getElementById('ptable');
@@ -147,6 +162,7 @@
                 ptable.appendChild(cell);
             });
         }
+        updateVisibility();
     }
 
     function refreshDeck() {
@@ -161,10 +177,16 @@
         const others = document.getElementById('show-others').checked;
         elements.forEach(el => {
             const cell = document.getElementById(`el-${el.z}`);
-            // Grundregel: Verstecke das Ziel-Element IMMER während der Aufgabe
-            if (currentTask && el.z === currentTask.z) {
+            // Während der Aufgabe: Das Ziel-Element IMMER verstecken
+            if (currentTask && el.z === currentTask.z && !isAnswered) {
                 cell.classList.add('content-hidden');
-            } else if (others || !currentTask) {
+            } 
+            // Wenn beantwortet oder Lernmodus: Zeige Ziel
+            else if (isAnswered || !currentTask) {
+                cell.classList.remove('content-hidden');
+            }
+            // Andere Elemente je nach Checkbox
+            else if (others) {
                 cell.classList.remove('content-hidden');
             } else {
                 cell.classList.add('content-hidden');
@@ -175,9 +197,9 @@
     function nextTask() {
         if (deck.length === 0) refreshDeck();
         currentTask = deck.pop();
+        isAnswered = false;
         document.getElementById('remaining').innerText = deck.length;
         
-        // Reset Styles
         document.querySelectorAll('.cell').forEach(c => c.classList.remove('correct', 'wrong', 'target-frame', 'highlight'));
         document.getElementById('feedback').innerText = '';
         document.getElementById('answer-input').value = '';
@@ -187,21 +209,21 @@
 
         if (mode === 'click') {
             inputArea.style.display = 'none';
-            taskText.innerText = `Suche die Position von: ${currentTask.n} (${currentTask.s})`;
+            document.getElementById('task-text').innerText = `Suche die Position von: ${currentTask.n} (${currentTask.s})`;
         } else if (mode === 'input') {
             inputArea.style.display = 'flex';
             document.getElementById(`el-${currentTask.z}`).classList.add('highlight');
-            taskText.innerText = `Welches Element gehört in das markierte Feld? (Symbol oder Name)`;
+            document.getElementById('task-text').innerText = `Welches Element gehört in das markierte Feld?`;
             document.getElementById('answer-input').focus();
         } else if (mode === 'identify') {
             inputArea.style.display = 'flex';
             document.getElementById(`el-${currentTask.z}`).classList.add('target-frame');
-            taskText.innerText = `Welches Symbol gehört in das umrahmte Feld?`;
+            document.getElementById('task-text').innerText = `Welches Symbol gehört in das umrahmte Feld?`;
             document.getElementById('answer-input').focus();
         } else {
             inputArea.style.display = 'none';
-            taskText.innerText = "Lernmodus: Klicke auf die Felder.";
-            currentTask = null; // Im Lernmodus keine aktive Aufgabe
+            document.getElementById('task-text').innerText = "Lernmodus: Klicke auf die Felder.";
+            currentTask = null;
         }
         updateVisibility();
     }
@@ -211,41 +233,62 @@
         if (mode === 'study') {
             document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight'));
             document.getElementById(`el-${el.z}`).classList.add('highlight');
-            taskText.innerText = `${el.n} (${el.s}): Ordnungszahl ${el.z}, Hauptgruppe ${groups.indexOf(el.g)+1}`;
-        } else if (mode === 'click' && currentTask) {
+            document.getElementById('task-text').innerText = `${el.n} (${el.s}): Ordnungszahl ${el.z}, Hauptgruppe ${groups.indexOf(el.g)+1}`;
+        } else if (mode === 'click' && currentTask && !isAnswered) {
             validate(el.z === currentTask.z, el.z);
         }
     }
 
+    function normalize(s) {
+        return s.trim().toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss');
+    }
+
     function validate(isCorrect, clickedZ = null) {
-        if (!currentTask) return;
+        if (!currentTask || isAnswered) return;
+        isAnswered = true;
         total++;
+        
         const targetCell = document.getElementById(`el-${currentTask.z}`);
-        targetCell.classList.remove('content-hidden', 'target-frame', 'highlight');
+        updateVisibility(); // Deckt das Element auf
 
         if (isCorrect) {
             score++;
             document.getElementById('feedback').innerText = "Richtig! ✨";
-            document.getElementById('feedback').style.color = "var(--success)";
+            document.getElementById('feedback').style.color = "#86efac";
             targetCell.classList.add('correct');
         } else {
-            document.getElementById('feedback').innerText = `Leider falsch. Es war ${currentTask.n} (${currentTask.s}).`;
-            document.getElementById('feedback').style.color = "var(--error)";
+            document.getElementById('feedback').innerText = `Leider falsch. Es war ${currentTask.s} (${currentTask.n}).`;
+            document.getElementById('feedback').style.color = "#fca5a5";
             targetCell.classList.add('wrong');
             if (clickedZ) document.getElementById(`el-${clickedZ}`).classList.add('wrong');
         }
         
         document.getElementById('score').innerText = score;
         document.getElementById('total').innerText = total;
-        currentTask = null; // Aufgabe beendet, zeigt jetzt alles an (via updateVisibility)
-        setTimeout(updateVisibility, 10); 
     }
 
     document.getElementById('submit-btn').onclick = () => {
-        if (!currentTask) return;
-        const val = document.getElementById('answer-input').value.trim().toLowerCase();
-        const isCorrect = (val === currentTask.s.toLowerCase() || val === currentTask.n.toLowerCase());
-        validate(isCorrect);
+        if (!currentTask || isAnswered) return;
+        const mode = document.getElementById('mode-select').value;
+        const rawVal = document.getElementById('answer-input').value.trim();
+        
+        let correct = false;
+        if (mode === 'input') {
+            const parts = rawVal.split(/\s+/);
+            if (parts.length >= 2) {
+                const userSym = parts[0];
+                const userName = parts.slice(1).join(" ");
+                // Symbol: Case Sensitive! | Name: Fehlertolerant
+                if (userSym === currentTask.s && normalize(userName) === normalize(currentTask.n)) {
+                    correct = true;
+                }
+            }
+        } else if (mode === 'identify') {
+            // Im Identifizieren-Modus reicht das Symbol (Case Sensitive)
+            if (rawVal === currentTask.s) correct = true;
+        }
+        
+        validate(correct);
     };
 
     document.getElementById('answer-input').onkeypress = (e) => { if (e.key === 'Enter') document.getElementById('submit-btn').click(); };
