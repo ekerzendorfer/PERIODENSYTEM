@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSE-Trainer Pro: Hauptgruppen</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #22c55e;
+            --error: #ef4444;
+            --bg-site: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            
+            /* PSE Element Farben */
+            --alkali: #fee2e2; --erdalkali: #ffedd5; --halogene: #dcfce7;
+            --edelgase: #f3e8ff; --nichtmetalle: #e0f2fe; --metalle: #f1f5f9; --halbmetalle: #fef9c3;
+        }
+
+        * { box-sizing: border-box; transition: all 0.15s ease; }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-site);
+            color: var(--text-main);
+            margin: 0; padding: 20px; display: flex; justify-content: center;
+        }
+
+        .pse-container {
+            max-width: 1000px; width: 100%;
+            background: var(--bg-card); border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid var(--border); padding: 24px;
+        }
+
+        header {
+            border-bottom: 2px solid var(--border); margin-bottom: 20px;
+            padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .stats-bar {
+            display: flex; gap: 15px; background: var(--bg-site);
+            padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
+        }
+
+        .controls {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 8px;
+        }
+
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+
+        .task-area {
+            background: var(--primary); color: white; padding: 20px;
+            border-radius: 8px; margin-bottom: 20px; text-align: center;
+            min-height: 100px; display: flex; flex-direction: column; justify-content: center;
+        }
+
+        #task-text { font-size: 1.2rem; font-weight: 500; margin: 0; }
+        #feedback { font-weight: 700; margin-top: 8px; min-height: 1.2rem; }
+
+        .table-scroll { overflow-x: auto; padding: 10px 0; }
+        .ptable {
+            display: grid; grid-template-columns: 35px repeat(8, 1fr);
+            gap: 5px; min-width: 800px;
+        }
+
+        .cell {
+            aspect-ratio: 1 / 1; border: 1px solid var(--border); border-radius: 4px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; cursor: pointer; background: white; font-size: 0.75rem;
+        }
+        
+        .cell.header { background: none; border: none; font-weight: bold; cursor: default; color: var(--text-muted); }
+        .cell.empty { background: none; border: none; cursor: default; }
+
+        .z-num { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; color: var(--text-muted); }
+        .symbol { font-size: 1.2rem; font-weight: bold; }
+        .name { font-size: 0.6rem; text-align: center; margin-top: 2px; }
+
+        /* Kategorien */
+        .alkali { background-color: var(--alkali); } .erdalkali { background-color: var(--erdalkali); }
+        .halogen { background-color: var(--halogene); } .edelgas { background-color: var(--edelgase); }
+        .nichtmetall { background-color: var(--nichtmetalle); } .metall { background-color: var(--metalle); }
+        .halbmetall { background-color: var(--halbmetalle); }
+
+        /* Zustände */
+        .hidden-content .symbol, .hidden-content .name, .hidden-content .z-num { visibility: hidden; }
+        .cell.correct { background-color: var(--success) !important; color: white; border-color: #166534; }
+        .cell.wrong { background-color: var(--error) !important; color: white; border-color: #991b1b; }
+        .cell.target-frame { border: 4px solid #facc15 !important; transform: scale(1.05); z-index: 10; box-shadow: 0 0 15px rgba(250, 204, 21, 0.5); }
+
+        .input-area {
+            display: none; gap: 10px; margin-top: 20px; justify-content: center; align-items: center;
+        }
+        input#answer-input { width: 200px; padding: 12px; border: 2px solid var(--primary); border-radius: 8px; outline: none; font-size: 1.1rem; }
+        
+        .mode-info { font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="pse-container">
+    <header>
+        <h1>PSE-Trainer Pro</h1>
+        <div class="stats-bar">
+            <div>Richtig: <span id="score">0</span></div>
+            <div>Übrig: <span id="remaining">0</span></div>
+            <div>Gesamt: <span id="total">0</span></div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Modus</label>
+            <select id="mode-select">
+                <option value="click">Position finden (Symbol gegeben)</option>
+                <option value="identify">Symbol erkennen (Position gegeben)</option>
+                <option value="study">Freies Lernen</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Optionen</label>
+            <div style="font-size: 0.85rem;">
+                <input type="checkbox" id="show-others" checked> <label for="show-others" style="display:inline; font-weight:normal;">Andere Elemente zeigen</label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label>&nbsp;</label>
+            <button id="next-btn">Nächste Aufgabe</button>
+        </div>
+    </div>
+
+    <div class="task-area">
+        <p id="task-text">Wähle einen Modus und klicke auf Start</p>
+        <div id="feedback"></div>
+    </div>
+
+    <div class="table-scroll">
+        <div id="ptable" class="ptable"></div>
+    </div>
+
+    <div class="input-area" id="input-container">
+        <input type="text" id="answer-input" placeholder="Symbol eingeben..." autocomplete="off">
+        <button id="submit-btn" style="padding: 12px 24px;">Prüfen</button>
+    </div>
+    <div id="deck-info" class="mode-info">Alle Elemente wurden gemischt. Keine Wiederholung bis der Stapel leer ist.</div>
+</div>
+
+<script>
+    const elements = [
+        { z: 1, s: "H", n: "Wasserstoff", g: 1, p: 1, c: "nichtmetall" },
+        { z: 2, s: "He", n: "Helium", g: 18, p: 1, c: "edelgas" },
+        { z: 3, s: "Li", n: "Lithium", g: 1, p: 2, c: "alkali" },
+        { z: 4, s: "Be", n: "Beryllium", g: 2, p: 2, c: "erdalkali" },
+        { z: 5, s: "B", n: "Bor", g: 13, p: 2, c: "halbmetall" },
+        { z: 6, s: "C", n: "Kohlenstoff", g: 14, p: 2, c: "nichtmetall" },
+        { z: 7, s: "N", n: "Stickstoff", g: 15, p: 2, c: "nichtmetall" },
+        { z: 8, s: "O", n: "Sauerstoff", g: 16, p: 2, c: "nichtmetall" },
+        { z: 9, s: "F", n: "Fluor", g: 17, p: 2, c: "halogen" },
+        { z: 10, s: "Ne", n: "Neon", g: 18, p: 2, c: "edelgas" },
+        { z: 11, s: "Na", n: "Natrium", g: 1, p: 3, c: "alkali" },
+        { z: 12, s: "Mg", n: "Magnesium", g: 2, p: 3, c: "erdalkali" },
+        { z: 13, s: "Al", n: "Aluminium", g: 13, p: 3, c: "metall" },
+        { z: 14, s: "Si", n: "Silicium", g: 14, p: 3, c: "halbmetall" },
+        { z: 15, s: "P", n: "Phosphor", g: 15, p: 3, c: "nichtmetall" },
+        { z: 16, s: "S", n: "Schwefel", g: 16, p: 3, c: "nichtmetall" },
+        { z: 17, s: "Cl", n: "Chlor", g: 17, p: 3, c: "halogen" },
+        { z: 18, s: "Ar", n: "Argon", g: 18, p: 3, c: "edelgas" },
+        { z: 19, s: "K", n: "Kalium", g: 1, p: 4, c: "alkali" },
+        { z: 20, s: "Ca", n: "Calcium", g: 2, p: 4, c: "erdalkali" },
+        { z: 31, s: "Ga", n: "Gallium", g: 13, p: 4, c: "metall" },
+        { z: 32, s: "Ge", n: "Germanium", g: 14, p: 4, c: "halbmetall" },
+        { z: 33, s: "As", n: "Arsen", g: 15, p: 4, c: "halbmetall" },
+        { z: 34, s: "Se", n: "Selen", g: 16, p: 4, c: "nichtmetall" },
+        { z: 35, s: "Br", n: "Brom", g: 17, p: 4, c: "halogen" },
+        { z: 36, s: "Kr", n: "Krypton", g: 18, p: 4, c: "edelgas" },
+        { z: 37, s: "Rb", n: "Rubidium", g: 1, p: 5, c: "alkali" },
+        { z: 38, s: "Sr", n: "Strontium", g: 2, p: 5, c: "erdalkali" },
+        { z: 49, s: "In", n: "Indium", g: 13, p: 5, c: "metall" },
+        { z: 50, s: "Sn", n: "Zinn", g: 14, p: 5, c: "metall" },
+        { z: 51, s: "Sb", n: "Antimon", g: 15, p: 5, c: "halbmetall" },
+        { z: 52, s: "Te", n: "Tellur", g: 16, p: 5, c: "halbmetall" },
+        { z: 53, s: "I", n: "Iod", g: 17, p: 5, c: "halogen" },
+        { z: 54, s: "Xe", n: "Xenon", g: 18, p: 5, c: "edelgas" },
+        { z: 55, s: "Cs", n: "Cäsium", g: 1, p: 6, c: "alkali" },
+        { z: 56, s: "Ba", n: "Barium", g: 2, p: 6, c: "erdalkali" },
+        { z: 81, s: "Tl", n: "Thallium", g: 13, p: 6, c: "metall" },
+        { z: 82, s: "Pb", n: "Blei", g: 14, p: 6, c: "metall" },
+        { z: 83, s: "Bi", n: "Bismut", g: 15, p: 6, c: "metall" },
+        { z: 84, s: "Po", n: "Polonium", g: 16, p: 6, c: "halbmetall" },
+        { z: 85, s: "At", n: "Astat", g: 17, p: 6, c: "halbmetall" },
+        { z: 86, s: "Rn", n: "Radon", g: 18, p: 6, c: "edelgas" }
+    ];
+
+    const groups = [1, 2, 13, 14, 15, 16, 17, 18];
+    let deck = [];
+    let currentTask = null;
+    let score = 0;
+    let total = 0;
+
+    const ptable = document.getElementById('ptable');
+    const taskText = document.getElementById('task-text');
+    const feedback = document.getElementById('feedback');
+    const inputArea = document.getElementById('input-container');
+    const answerInput = document.getElementById('answer-input');
+
+    function initTable() {
+        ptable.innerHTML = '';
+        ptable.appendChild(createHeaderCell('P/G'));
+        groups.forEach(g => ptable.appendChild(createHeaderCell(g)));
+
+        for (let p = 1; p <= 6; p++) {
+            ptable.appendChild(createHeaderCell(p));
+            groups.forEach(g => {
+                const el = elements.find(e => e.p === p && e.g === g);
+                if (el) {
+                    const cell = document.createElement('div');
+                    cell.className = `cell ${el.c} hidden-content`;
+                    cell.id = `el-${el.z}`;
+                    cell.innerHTML = `<span class="z-num">${el.z}</span><span class="symbol">${el.s}</span><span class="name">${el.n}</span>`;
+                    cell.onclick = () => handleCellClick(el);
+                    ptable.appendChild(cell);
+                } else {
+                    ptable.appendChild(Object.assign(document.createElement('div'), {className: 'cell empty'}));
+                }
+            });
+        }
+    }
+
+    function createHeaderCell(text) {
+        const div = document.createElement('div');
+        div.className = 'cell header';
+        div.innerText = text;
+        return div;
+    }
+
+    // Kartenstapel mischen (Fisher-Yates Shuffle)
+    function refreshDeck() {
+        deck = [...elements];
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+    }
+
+    function nextTask() {
+        if (deck.length === 0) refreshDeck();
+        currentTask = deck.pop();
+        
+        // UI Reset
+        document.querySelectorAll('.cell').forEach(c => {
+            c.classList.remove('correct', 'wrong', 'target-frame', 'highlight');
+            if (document.getElementById('show-others').checked) {
+                c.classList.remove('hidden-content');
+            } else {
+                c.classList.add('hidden-content');
+            }
+        });
+
+        feedback.innerText = '';
+        answerInput.value = '';
+        const mode = document.getElementById('mode-select').value;
+        document.getElementById('remaining').innerText = deck.length;
+
+        if (mode === 'click') {
+            inputArea.style.display = 'none';
+            taskText.innerText = `Suche das Element: ${currentTask.n} (${currentTask.s})`;
+        } else if (mode === 'identify') {
+            inputArea.style.display = 'flex';
+            const targetCell = document.getElementById(`el-${currentTask.z}`);
+            targetCell.classList.add('target-frame');
+            targetCell.classList.remove('hidden-content'); // Das Ziel muss man sehen (zumindest den Rahmen)
+            taskText.innerText = `Welches Elementsymbol gehört in das markierte Feld?`;
+            answerInput.focus();
+        } else {
+            inputArea.style.display = 'none';
+            taskText.innerText = "Klicke auf die Elemente zum Lernen.";
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('hidden-content'));
+        }
+    }
+
+    function handleCellClick(el) {
+        const mode = document.getElementById('mode-select').value;
+        if (mode === 'study') {
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight', 'target-frame'));
+            const cell = document.getElementById(`el-${el.z}`);
+            cell.classList.add('highlight');
+            taskText.innerText = `${el.n} (${el.s}): Ordnungszahl ${el.z}, Hauptgruppe ${groups.indexOf(el.g)+1}`;
+        } else if (mode === 'click' && currentTask) {
+            validate(el.z === currentTask.z, el.z);
+        }
+    }
+
+    function submitInput() {
+        if (!currentTask) return;
+        const val = answerInput.value.trim().toLowerCase();
+        validate(val === currentTask.s.toLowerCase());
+    }
+
+    function validate(isCorrect, clickedZ = null) {
+        total++;
+        const targetCell = document.getElementById(`el-${currentTask.z}`);
+        targetCell.classList.remove('hidden-content', 'target-frame');
+
+        if (isCorrect) {
+            score++;
+            feedback.innerText = "Richtig! ✨";
+            feedback.style.color = "var(--success)";
+            targetCell.classList.add('correct');
+        } else {
+            feedback.innerText = `Falsch. Es war ${currentTask.n} (${currentTask.s}).`;
+            feedback.style.color = "var(--error)";
+            targetCell.classList.add('wrong');
+            if (clickedZ) document.getElementById(`el-${clickedZ}`).classList.add('wrong');
+        }
+        
+        document.getElementById('score').innerText = score;
+        document.getElementById('total').innerText = total;
+        currentTask = null;
+    }
+
+    // Event Listener
+    document.getElementById('next-btn').onclick = nextTask;
+    document.getElementById('submit-btn').onclick = submitInput;
+    document.getElementById('mode-select').onchange = () => {
+        score = 0; total = 0;
+        document.getElementById('score').innerText = 0;
+        document.getElementById('total').innerText = 0;
+        nextTask();
+    };
+    answerInput.onkeypress = (e) => { if (e.key === 'Enter') submitInput(); };
+    document.getElementById('show-others').onchange = () => {
+        const checked = document.getElementById('show-others').checked;
+        document.querySelectorAll('.cell.main-group').forEach(c => {
+            if (checked) c.classList.remove('hidden-content');
+            else c.classList.add('hidden-content');
+        });
+        if (currentTask && document.getElementById('mode-select').value === 'identify') {
+             document.getElementById(`el-${currentTask.z}`).classList.remove('hidden-content');
+        }
+    };
+
+    // Start
+    initTable();
+    refreshDeck();
+    document.getElementById('remaining').innerText = elements.length;
+</script>
+
+</body>
+</html>
