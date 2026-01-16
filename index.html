@@ -14,31 +14,22 @@
 
         * { box-sizing: border-box; transition: all 0.1s ease; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-site); color: var(--text-main); padding: 20px; display: flex; justify-content: center; }
-        .pse-container { max-width: 1000px; width: 100%; background: var(--bg-card); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); padding: 24px; position: relative; }
+        .pse-container { max-width: 1000px; width: 100%; background: var(--bg-card); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); padding: 24px; }
         
         header { border-bottom: 2px solid var(--border); margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .stats-bar { display: flex; gap: 15px; background: var(--bg-site); padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; }
         
-        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 8px; }
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; background: #f1f5f9; padding: 15px; border-radius: 8px; }
         .control-group { display: flex; flex-direction: column; gap: 5px; }
         label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
 
         .task-area { 
-            background: var(--primary); color: white; padding: 25px; border-radius: 8px; 
-            margin-bottom: 20px; text-align: left; min-height: 140px; 
-            display: flex; flex-direction: column; justify-content: center; position: relative;
+            background: var(--primary); color: white; padding: 20px; border-radius: 8px; 
+            margin-bottom: 15px; text-align: left; min-height: 100px; 
+            display: flex; flex-direction: column; justify-content: center;
         }
-        #task-text { font-size: 1.2rem; font-weight: 500; margin: 0; max-width: 70%; }
-        #feedback { font-weight: 700; margin-top: 10px; min-height: 1.2rem; font-size: 1.1rem; }
-
-        /* Button unten rechts positionieren */
-        #next-btn { 
-            position: absolute; right: 20px; bottom: 20px; 
-            padding: 12px 24px; background: #fff; color: var(--primary); 
-            border: none; border-radius: 8px; cursor: pointer; font-weight: 800;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        #next-btn:hover { background: #f1f5f9; transform: translateY(-2px); }
+        #task-text { font-size: 1.2rem; font-weight: 500; margin: 0; }
+        #feedback { font-weight: 700; margin-top: 5px; min-height: 1.2rem; font-size: 1.1rem; }
 
         .ptable { display: grid; grid-template-columns: 35px repeat(8, 1fr); gap: 5px; min-width: 800px; margin-top: 10px; }
         .cell { aspect-ratio: 1 / 1; border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: white; font-size: 0.75rem; }
@@ -60,9 +51,18 @@
         .cell.target-frame { border: 4px solid #facc15 !important; z-index: 5; box-shadow: 0 0 10px rgba(250,204,21,0.5); }
         .cell.highlight { border: 3px solid #fff; box-shadow: 0 0 0 2px var(--primary); }
 
-        .input-area { display: none; gap: 10px; margin-top: 20px; justify-content: center; background: #f1f5f9; padding: 15px; border-radius: 8px; }
-        input { padding: 12px; border: 2px solid var(--primary); border-radius: 8px; outline: none; width: 300px; font-size: 1.1rem; }
-        #submit-btn { padding: 10px 25px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        /* Aktionsleiste unten */
+        .action-bar { 
+            margin-top: 20px; display: flex; gap: 10px; align-items: center; 
+            background: #f1f5f9; padding: 15px; border-radius: 8px; justify-content: flex-end;
+        }
+        #answer-input { flex-grow: 1; padding: 12px; border: 2px solid var(--primary); border-radius: 8px; outline: none; font-size: 1.1rem; max-width: 400px; }
+        
+        button { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; font-size: 1rem; }
+        #submit-btn { background: var(--primary); color: white; }
+        #submit-btn:hover { background: var(--primary-dark); }
+        #next-btn { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+        #next-btn:hover { background: #eff6ff; }
         
         .deck-info { font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; text-align: center; }
     </style>
@@ -98,18 +98,18 @@
     </div>
 
     <div class="task-area">
-        <p id="task-text">Wähle einen Modus und starte die Aufgabe.</p>
+        <div id="task-text">Wähle einen Modus und starte die Aufgabe.</div>
         <div id="feedback"></div>
-        <button id="next-btn">Nächste Aufgabe</button>
     </div>
 
     <div style="overflow-x:auto;">
         <div id="ptable" class="ptable"></div>
     </div>
 
-    <div class="input-area" id="input-container">
-        <input type="text" id="answer-input" placeholder="Symbol [Leer] Name (z.B. Na Natrium)" autocomplete="off">
+    <div class="action-bar">
+        <input type="text" id="answer-input" placeholder="Warte auf Start..." autocomplete="off">
         <button id="submit-btn">Prüfen</button>
+        <button id="next-btn">Nächste Aufgabe</button>
     </div>
     <p class="deck-info">Misch-Modus: Jedes Element wird einmal abgefragt, bevor Wiederholungen kommen.</p>
 </div>
@@ -142,8 +142,10 @@
     const groups = [1, 2, 13, 14, 15, 16, 17, 18];
     let deck = [], currentTask = null, score = 0, total = 0, isAnswered = false;
 
+    const ptable = document.getElementById('ptable');
+    const ansInput = document.getElementById('answer-input');
+
     function initTable() {
-        const ptable = document.getElementById('ptable');
         ptable.innerHTML = '';
         const header = document.createElement('div'); header.className='cell header'; header.innerText='P/G'; ptable.appendChild(header);
         groups.forEach(g => { const c=document.createElement('div'); c.className='cell header'; c.innerText=g; ptable.appendChild(c); });
@@ -174,18 +176,20 @@
     }
 
     function updateVisibility() {
-        const others = document.getElementById('show-others').checked;
+        const mode = document.getElementById('mode-select').value;
+        let others = document.getElementById('show-others').checked;
+
+        // Modus 1: Andere immer ausblenden!
+        if (mode === 'click' && currentTask) others = false;
+
         elements.forEach(el => {
             const cell = document.getElementById(`el-${el.z}`);
-            // Während der Aufgabe: Das Ziel-Element IMMER verstecken
             if (currentTask && el.z === currentTask.z && !isAnswered) {
                 cell.classList.add('content-hidden');
             } 
-            // Wenn beantwortet oder Lernmodus: Zeige Ziel
             else if (isAnswered || !currentTask) {
                 cell.classList.remove('content-hidden');
             }
-            // Andere Elemente je nach Checkbox
             else if (others) {
                 cell.classList.remove('content-hidden');
             } else {
@@ -202,26 +206,31 @@
         
         document.querySelectorAll('.cell').forEach(c => c.classList.remove('correct', 'wrong', 'target-frame', 'highlight'));
         document.getElementById('feedback').innerText = '';
-        document.getElementById('answer-input').value = '';
+        ansInput.value = '';
         
         const mode = document.getElementById('mode-select').value;
-        const inputArea = document.getElementById('input-container');
 
         if (mode === 'click') {
-            inputArea.style.display = 'none';
+            ansInput.style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'none';
             document.getElementById('task-text').innerText = `Suche die Position von: ${currentTask.n} (${currentTask.s})`;
         } else if (mode === 'input') {
-            inputArea.style.display = 'flex';
+            ansInput.style.display = 'block';
+            document.getElementById('submit-btn').style.display = 'block';
+            ansInput.placeholder = "Symbol [Leer] Name (z.B. Na Natrium)";
             document.getElementById(`el-${currentTask.z}`).classList.add('highlight');
             document.getElementById('task-text').innerText = `Welches Element gehört in das markierte Feld?`;
-            document.getElementById('answer-input').focus();
+            ansInput.focus();
         } else if (mode === 'identify') {
-            inputArea.style.display = 'flex';
+            ansInput.style.display = 'block';
+            document.getElementById('submit-btn').style.display = 'block';
+            ansInput.placeholder = "Symbol eingeben...";
             document.getElementById(`el-${currentTask.z}`).classList.add('target-frame');
             document.getElementById('task-text').innerText = `Welches Symbol gehört in das umrahmte Feld?`;
-            document.getElementById('answer-input').focus();
+            ansInput.focus();
         } else {
-            inputArea.style.display = 'none';
+            ansInput.style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'none';
             document.getElementById('task-text').innerText = "Lernmodus: Klicke auf die Felder.";
             currentTask = null;
         }
@@ -249,7 +258,7 @@
         total++;
         
         const targetCell = document.getElementById(`el-${currentTask.z}`);
-        updateVisibility(); // Deckt das Element auf
+        updateVisibility();
 
         if (isCorrect) {
             score++;
@@ -270,7 +279,7 @@
     document.getElementById('submit-btn').onclick = () => {
         if (!currentTask || isAnswered) return;
         const mode = document.getElementById('mode-select').value;
-        const rawVal = document.getElementById('answer-input').value.trim();
+        const rawVal = ansInput.value.trim();
         
         let correct = false;
         if (mode === 'input') {
@@ -278,20 +287,18 @@
             if (parts.length >= 2) {
                 const userSym = parts[0];
                 const userName = parts.slice(1).join(" ");
-                // Symbol: Case Sensitive! | Name: Fehlertolerant
                 if (userSym === currentTask.s && normalize(userName) === normalize(currentTask.n)) {
                     correct = true;
                 }
             }
         } else if (mode === 'identify') {
-            // Im Identifizieren-Modus reicht das Symbol (Case Sensitive)
             if (rawVal === currentTask.s) correct = true;
         }
         
         validate(correct);
     };
 
-    document.getElementById('answer-input').onkeypress = (e) => { if (e.key === 'Enter') document.getElementById('submit-btn').click(); };
+    ansInput.onkeypress = (e) => { if (e.key === 'Enter') document.getElementById('submit-btn').click(); };
     document.getElementById('next-btn').onclick = nextTask;
     document.getElementById('show-others').onchange = updateVisibility;
     document.getElementById('mode-select').onchange = () => { score=0; total=0; document.getElementById('score').innerText=0; document.getElementById('total').innerText=0; nextTask(); };
